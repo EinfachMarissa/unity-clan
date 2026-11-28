@@ -1,0 +1,18 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bewerbungsstatus | UNITY</title><link rel="stylesheet" href="unity-v101.css"></head><body><header><a class="brand" href="index.html">UNITY</a><button class="menu-toggle" aria-expanded="false" aria-controls="nav">Menü</button><nav id="nav" aria-label="Navigation"><a href="index.html">Startseite</a><a href="community.html">Community</a><a href="regelwerk.html">Regelwerk</a><a href="bewerbung.html">Bewerbung</a><a href="bewerbungsstatus.html" aria-current="page">Bewerbungsstatus</a><a href="https://unity-bewerbungen.marissa-konig12.workers.dev/portal">Mitgliederportal</a></nav></header><main><section id="bewerbungsstatus"><div class="eyebrow">DEINE BEWERBUNG</div><h2>Bewerbungsstatus</h2><p>Prüfe den aktuellen Stand deiner Bewerbung mit deinem persönlichen Code.</p><form class="tile" id="status-form"><label>Bewerbungscode<input autocomplete="off" maxlength="38" name="code" placeholder="UNITY-…" required="" spellcheck="false"/></label><button class="btn" type="submit">Status abfragen</button><p aria-live="polite" id="status-result" role="status"></p></form><p class="muted">Der Status ist bis zu 30 Tage nach der Bewerbung abrufbar. Ältere Bewerbungen ohne Code können nicht online abgefragt werden.</p></section></main><footer>© UNITY · Eigenständiger Clan, keine offizielle Webseite von OPSUCHT.NET. · <a href="start.html">Erste Schritte und Mitgliederfunktionen</a></footer><script>const menu=document.querySelector('.menu-toggle');const navigation=document.querySelector('nav');menu.addEventListener('click',()=>{menu.setAttribute('aria-expanded',String(navigation.classList.toggle('open')))});</script><script>const statusForm=document.getElementById('status-form');
+const statusResult=document.getElementById('status-result');
+statusForm.addEventListener('submit',async event=>{
+ event.preventDefault();
+ const code=String(new FormData(statusForm).get('code')).trim().toUpperCase();
+ if(!/^UNITY-[A-F0-9]{32}$/.test(code)){statusResult.textContent='Bitte gib einen gültigen Bewerbungscode ein.';return;}
+ const button=statusForm.querySelector('button');button.disabled=true;statusResult.textContent='Status wird abgerufen …';statusResult.style.color='';
+ try{
+ const response=await fetch('https://unity-bewerbungen.marissa-konig12.workers.dev/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+ const result=await response.json();
+ if(!response.ok||result.success!==true)throw new Error(result.error||'Abfrage fehlgeschlagen.');
+ const colors={'Eingegangen':'#c6bed5','In Bearbeitung':'#f5ca67','Angenommen':'#79dfa4','Abgelehnt':'#ff939e'};
+ if(!Object.hasOwn(colors,result.status))throw new Error('Unbekannter Status.');
+ statusResult.textContent='Aktueller Status: '+result.status;statusResult.style.color=colors[result.status];
+ }catch(error){statusResult.textContent=error.message||'Abfrage fehlgeschlagen.';}
+ finally{button.disabled=false;}
+});
+</script></body></html>
